@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import React from "react";
+import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "next-themes";
 
@@ -28,6 +29,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className={inter.className}>
+        <Script
+          id="font-size-init"
+          strategy="beforeInteractive"
+        >
+          {`try{var size=localStorage.getItem("agent-workspace-font-size");if(size==="small"||size==="large"){document.documentElement.dataset.fontSize=size}}catch(e){}`}
+        </Script>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

@@ -41,35 +41,37 @@ pnpm exec prettier --check .
 
 ## 3. Test matrix
 
-| ID  | Scenario            | Steps                                          | Expected                                                  | Automate |
-| --- | ------------------- | ---------------------------------------------- | --------------------------------------------------------- | -------- |
-| A1  | Load agents         | Open workspace with `apiUrl` and `assistantId` | Combo lists assistants from `assistants.search`           | Yes      |
-| A2  | Switch agent        | Select a different agent                       | `assistantId` changes, `threadId` clears, stream remounts | Yes      |
-| A3  | Graph fallback      | Use a non-UUID graph ID                        | Thread and cron queries use `graph_id`                    | Yes      |
-| T1  | New thread          | Click new-thread control                       | Active thread clears; welcome state returns               | Yes      |
-| T2  | Rename              | Edit title, save, reload                       | Title persists in metadata; existing metadata preserved   | Yes      |
-| T3  | Empty rename        | Clear title and save                           | Validation error; no API call                             | Yes      |
-| T4  | Cancel rename       | Press Escape                                   | Draft discarded; title unchanged                          | Yes      |
-| T5  | Delete inactive     | Trash → confirm on another thread              | Row disappears; active thread unchanged                   | Yes      |
-| T6  | Delete active       | Trash → confirm on active thread               | Row disappears; chat resets                               | Yes      |
-| T7  | Delete cancel       | Trash → cancel                                 | No API call; row remains                                  | Yes      |
-| O1  | Open operations     | Click Operations                               | Sheet opens; default tab is Scheduled                     | Yes      |
-| O2  | Deep link           | Load `operationsOpen=true&operationsTab=runs`  | Runs tab opens directly                                   | Yes      |
-| C1  | List crons          | Open Scheduled                                 | Crons for selected assistant only                         | Yes      |
-| C2  | Create cron         | Fill dialog and submit                         | Cron appears; success feedback                            | Yes      |
-| C3  | Pause/enable        | Toggle switch                                  | UI updates; server confirms                               | Yes      |
-| C4  | Toggle failure      | Force server error                             | UI rolls back; error toast                                | Yes      |
-| C5  | Delete cron         | Inline confirm                                 | Cron removed after success                                | Yes      |
-| R1  | Load runs           | Open Runs                                      | Recent runs render with status and time                   | Yes      |
-| R2  | Filter runs         | Select status filter                           | Only matching runs render                                 | Yes      |
-| R3  | Open run thread     | Click a run                                    | Sheet closes; thread opens                                | Yes      |
-| V1  | Review queue        | Open Reviews                                   | Interrupted threads render with pending actions           | Yes      |
-| V2  | Review handoff      | Click Review                                   | `threadId` set; sheet closes; inbox renders               | Yes      |
-| V3  | Approve/reject/edit | Submit a decision in inbox                     | Run resumes or ends through existing flow                 | Yes      |
-| TH1 | Light theme         | Toggle to light                                | `html.class="light"`; readable surfaces                   | Yes      |
-| TH2 | Dark theme          | Toggle to dark                                 | `html.class="dark"`; readable surfaces                    | Yes      |
-| TH3 | Persistence         | Reload after toggle                            | Preference persists                                       | Yes      |
-| TH4 | No icon             | Inspect document head                          | No favicon link                                           | Yes      |
+| ID  | Scenario            | Steps                                          | Expected                                                                 | Automate |
+| --- | ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------ | -------- |
+| A1  | Load agents         | Open workspace with `apiUrl` and `assistantId` | Combo lists assistants from `assistants.search`                          | Yes      |
+| A2  | Switch agent        | Select a different agent                       | `assistantId` changes, `threadId` clears, stream remounts                | Yes      |
+| A3  | Graph fallback      | Use a non-UUID graph ID                        | Thread and cron queries use `graph_id`                                   | Yes      |
+| T1  | New thread          | Click new-thread control                       | Active thread clears; welcome state returns                              | Yes      |
+| T2  | Rename              | Edit title, save, reload                       | Title persists in metadata; existing metadata preserved                  | Yes      |
+| T3  | Empty rename        | Clear title and save                           | Validation error; no API call                                            | Yes      |
+| T4  | Cancel rename       | Press Escape                                   | Draft discarded; title unchanged                                         | Yes      |
+| T5  | Delete inactive     | Trash → confirm on another thread              | Row disappears; active thread unchanged                                  | Yes      |
+| T6  | Delete active       | Trash → confirm on active thread               | Row disappears; chat resets                                              | Yes      |
+| T7  | Delete cancel       | Trash → cancel                                 | No API call; row remains                                                 | Yes      |
+| O1  | Open operations     | Click Operations                               | Sheet opens; default tab is Scheduled                                    | Yes      |
+| O2  | Deep link           | Load `operationsOpen=true&operationsTab=runs`  | Runs tab opens directly                                                  | Yes      |
+| O3  | Scheduling guide    | Click How to schedule jobs in Operations       | Walkthrough opens with steps, cron examples, timezone guidance, and tips | Yes      |
+| O4  | Guide dismiss       | Click Got it or press Escape                   | Guide closes; Operations state is unchanged                              | Yes      |
+| C1  | List crons          | Open Scheduled                                 | Crons for selected assistant only                                        | Yes      |
+| C2  | Create cron         | Fill dialog and submit                         | Cron appears; success feedback                                           | Yes      |
+| C3  | Pause/enable        | Toggle switch                                  | UI updates; server confirms                                              | Yes      |
+| C4  | Toggle failure      | Force server error                             | UI rolls back; error toast                                               | Yes      |
+| C5  | Delete cron         | Inline confirm                                 | Cron removed after success                                               | Yes      |
+| R1  | Load runs           | Open Runs                                      | Recent runs render with status and time                                  | Yes      |
+| R2  | Filter runs         | Select status filter                           | Only matching runs render                                                | Yes      |
+| R3  | Open run thread     | Click a run                                    | Sheet closes; thread opens                                               | Yes      |
+| V1  | Review queue        | Open Reviews                                   | Interrupted threads render with pending actions                          | Yes      |
+| V2  | Review handoff      | Click Review                                   | `threadId` set; sheet closes; inbox renders                              | Yes      |
+| V3  | Approve/reject/edit | Submit a decision in inbox                     | Run resumes or ends through existing flow                                | Yes      |
+| TH1 | Light theme         | Toggle to light                                | `html.class="light"`; readable surfaces                                  | Yes      |
+| TH2 | Dark theme          | Toggle to dark                                 | `html.class="dark"`; readable surfaces                                   | Yes      |
+| TH3 | Persistence         | Reload after toggle                            | Preference persists                                                      | Yes      |
+| TH4 | No icon             | Inspect document head                          | No favicon link                                                          | Yes      |
 
 ## 4. Manual smoke procedure
 

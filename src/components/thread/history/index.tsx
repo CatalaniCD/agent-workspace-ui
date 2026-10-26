@@ -23,7 +23,6 @@ import {
   X,
 } from "lucide-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -303,7 +302,6 @@ export default function ThreadHistory() {
             </h1>
           </div>
           <div className="flex items-center gap-1">
-            <ThemeToggle />
             <TooltipIconButton
               tooltip="Operations"
               side="right"

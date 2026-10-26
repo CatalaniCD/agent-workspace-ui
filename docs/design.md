@@ -130,7 +130,7 @@ The LangGraph SDK exposes hard deletion, and the intent is explicit cleanup. A s
 | Runs      | Recent threads, then `runs.list` per thread | Filter by status, open thread | 12-thread and 5-run caps                                       |
 | Reviews   | Interrupted threads                         | Open thread for review        | Hands off to existing agent-inbox; no duplicate approval logic |
 
-The sheet is available from the welcome header, the active-chat header, and the thread sidebar. Tabs are URL-backed so a reviewer can link directly to a queue.
+The sheet is available from the welcome header, the active-chat header, and the thread sidebar. Tabs are URL-backed so a reviewer can link directly to a queue; the Reviews tab is reached through Operations. A **How to schedule jobs** button in the Operations header opens an in-product walkthrough covering cron fields, examples, timezone, end time, and safe defaults.
 
 ### Review handoff
 

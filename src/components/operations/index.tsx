@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { CronsTab } from "./crons-tab";
 import { ReviewsTab } from "./reviews-tab";
 import { RunsTab } from "./runs-tab";
+import { SchedulingGuide } from "./scheduling-guide";
 
 type OperationsTab = "scheduled" | "runs" | "reviews";
 
@@ -57,23 +58,26 @@ export function OperationsSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex gap-1 border-b px-4 py-2">
-          {TABS.map(({ value, label, icon: Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => void setTabParam(value)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                tab === value
-                  ? "bg-secondary text-secondary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <Icon className="size-4" />
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
+          <div className="flex gap-1">
+            {TABS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => void setTabParam(value)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  tab === value
+                    ? "bg-secondary text-secondary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="size-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+          <SchedulingGuide />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">

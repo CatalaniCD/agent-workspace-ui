@@ -30,6 +30,7 @@ import { useThreads } from "./Thread";
 import { createClient } from "./client";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FontSizeToggle } from "@/components/font-size-toggle";
 
 export type StateType = { messages: Message[]; ui?: UIMessage[] };
 
@@ -233,7 +234,10 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
                   Agent Workspace
                 </h1>
               </div>
-              <ThemeToggle />
+              <div className="flex items-center gap-1">
+                <FontSizeToggle className="size-8 p-1.5" />
+                <ThemeToggle />
+              </div>
             </div>
             <p className="text-muted-foreground">
               Welcome to Agent Workspace! Before you get started, you need to

@@ -53,13 +53,13 @@ export function AgentSelector() {
   return (
     <div
       ref={containerRef}
-      className="relative"
+      className="relative min-w-0"
     >
       <Button
         type="button"
         variant="outline"
         size="sm"
-        className="bg-background max-w-[180px] gap-2 sm:max-w-[240px]"
+        className="bg-background max-w-[clamp(96px,32vw,140px)] gap-2 sm:max-w-[240px]"
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="listbox"
         aria-expanded={open}

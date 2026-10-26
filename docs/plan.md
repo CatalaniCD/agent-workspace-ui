@@ -76,6 +76,7 @@ Out of scope:
 - [x] Create dialog: title, schedule presets, cron expression, timezone, prompt, end time, enabled, keep-thread.
 - [x] Runs tab: recent runs, status filters, counts, open thread.
 - [x] Reviews tab: interrupted threads, pending actions, refresh, open review.
+- [x] Add an in-product "How to schedule jobs" guide with a cron walkthrough and examples.
 - [x] Hand off review decisions to the existing agent-inbox.
 - [x] Bound runs fan-out to 12 threads and 5 runs per thread.
 - [x] Surface errors with retry or rollback.

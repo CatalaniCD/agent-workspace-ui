@@ -16,6 +16,8 @@ import { TooltipIconButton } from "./tooltip-icon-button";
 import {
   Activity,
   ArrowDown,
+  Eye,
+  EyeOff,
   LoaderCircle,
   PanelRightOpen,
   PanelRightClose,
@@ -26,13 +28,12 @@ import {
 import { AgentSelector } from "@/components/agents/agent-selector";
 import { OperationsSheet } from "@/components/operations";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { FontSizeToggle } from "@/components/font-size-toggle";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
 import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Label } from "../ui/label";
-import { Switch } from "../ui/switch";
 import {
   Tooltip,
   TooltipContent,
@@ -126,6 +127,7 @@ export function Thread() {
     "operationsOpen",
     parseAsBoolean.withDefault(false),
   );
+
   const [hideToolCalls, setHideToolCalls] = useQueryState(
     "hideToolCalls",
     parseAsBoolean.withDefault(false),
@@ -149,6 +151,7 @@ export function Thread() {
   const isLoading = stream.isLoading;
 
   const lastError = useRef<string | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const setThreadId = (id: string | null) => {
     _setThreadId(id);
@@ -319,7 +322,7 @@ export function Thread() {
               <div className="flex min-w-0 items-center gap-2">
                 {(!chatHistoryOpen || !isLargeScreen) && (
                   <Button
-                    className="hover:bg-accent hover:text-accent-foreground"
+                    className="hover:bg-accent hover:text-accent-foreground size-9 p-0"
                     variant="ghost"
                     size="icon"
                     onClick={() => setChatHistoryOpen((p) => !p)}
@@ -334,34 +337,28 @@ export function Thread() {
                 )}
                 <AgentSelector />
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 <TooltipIconButton
                   tooltip="Operations"
-                  className="size-8 p-1.5"
+                  className="size-9 p-1.5 sm:size-8"
                   onClick={() => setOperationsOpen(true)}
                 >
                   <Activity className="size-5" />
                 </TooltipIconButton>
-                <TooltipIconButton
-                  tooltip="New thread"
-                  className="size-8 p-1.5"
-                  variant="ghost"
-                  onClick={() => setThreadId(null)}
-                >
-                  <SquarePen className="size-5" />
-                </TooltipIconButton>
-                <ThemeToggle />
+                <FontSizeToggle className="size-9 p-1.5 sm:size-8" />
+                <ThemeToggle className="size-9 p-1.5 sm:size-8" />
               </div>
             </div>
           )}
           {chatStarted && (
             <div className="relative z-10 flex items-center justify-between gap-3 p-2">
-              <div className="relative flex items-center justify-start gap-2">
+              <div className="relative flex min-w-0 items-center justify-start gap-2 pl-10 sm:pl-0">
                 <div className="absolute left-0 z-10">
                   {(!chatHistoryOpen || !isLargeScreen) && (
                     <Button
-                      className="hover:bg-accent hover:text-accent-foreground"
+                      className="hover:bg-accent hover:text-accent-foreground size-9 p-0"
                       variant="ghost"
+                      size="icon"
                       onClick={() => setChatHistoryOpen((p) => !p)}
                     >
                       {chatHistoryOpen ? (
@@ -373,7 +370,7 @@ export function Thread() {
                   )}
                 </div>
                 <motion.button
-                  className="flex cursor-pointer items-center gap-2"
+                  className="hidden cursor-pointer items-center gap-2 sm:flex"
                   onClick={() => setThreadId(null)}
                   animate={{
                     marginLeft: !chatHistoryOpen ? 48 : 0,
@@ -392,10 +389,10 @@ export function Thread() {
                 <AgentSelector />
               </div>
 
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 <TooltipIconButton
                   tooltip="Operations"
-                  className="size-8 p-1.5"
+                  className="size-9 p-1.5 sm:size-8"
                   onClick={() => setOperationsOpen(true)}
                 >
                   <Activity className="size-5" />
@@ -409,7 +406,8 @@ export function Thread() {
                 >
                   <SquarePen className="size-5" />
                 </TooltipIconButton>
-                <ThemeToggle className="size-8 p-1.5" />
+                <FontSizeToggle className="size-9 p-1.5 sm:size-8" />
+                <ThemeToggle className="size-9 p-1.5 sm:size-8" />
               </div>
 
               <div className="from-background to-background/0 absolute inset-x-0 top-full h-5 bg-gradient-to-b" />
@@ -460,7 +458,7 @@ export function Thread() {
                 </>
               }
               footer={
-                <div className="bg-background sticky bottom-0 flex flex-col items-center gap-8">
+                <div className="bg-background sticky bottom-0 flex flex-col items-center gap-4 pb-[env(safe-area-inset-bottom)] sm:gap-8">
                   {!chatStarted && (
                     <div className="flex items-center gap-3">
                       <h1 className="text-2xl font-semibold tracking-tight">
@@ -474,7 +472,7 @@ export function Thread() {
                   <div
                     ref={dropRef}
                     className={cn(
-                      "bg-muted relative z-10 mx-auto mb-8 w-full max-w-3xl rounded-2xl shadow-xs transition-all",
+                      "bg-muted relative z-10 mx-auto mb-4 w-full max-w-3xl rounded-2xl shadow-xs transition-all sm:mb-8",
                       dragOver
                         ? "border-primary border-2 border-dotted"
                         : "border border-solid",
@@ -509,32 +507,37 @@ export function Thread() {
                         className="field-sizing-content resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
                       />
 
-                      <div className="flex items-center gap-6 p-2 pt-4">
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <Switch
-                              id="render-tool-calls"
-                              checked={hideToolCalls ?? false}
-                              onCheckedChange={setHideToolCalls}
-                            />
-                            <Label
-                              htmlFor="render-tool-calls"
-                              className="text-muted-foreground text-sm"
-                            >
-                              Hide Tool Calls
-                            </Label>
-                          </div>
-                        </div>
-                        <Label
-                          htmlFor="file-input"
-                          className="flex cursor-pointer items-center gap-2"
+                      <div className="flex items-center gap-1 p-2 pt-4 sm:gap-2">
+                        <TooltipIconButton
+                          type="button"
+                          tooltip={
+                            hideToolCalls
+                              ? "Show tool calls"
+                              : "Hide tool calls"
+                          }
+                          className={cn(
+                            "size-9 shrink-0 sm:size-8",
+                            hideToolCalls && "bg-accent text-accent-foreground",
+                          )}
+                          aria-pressed={hideToolCalls ?? false}
+                          onClick={() => setHideToolCalls(!hideToolCalls)}
                         >
-                          <Plus className="text-muted-foreground size-5" />
-                          <span className="text-muted-foreground text-sm">
-                            Upload PDF or Image
-                          </span>
-                        </Label>
+                          {hideToolCalls ? (
+                            <EyeOff className="size-4" />
+                          ) : (
+                            <Eye className="size-4" />
+                          )}
+                        </TooltipIconButton>
+                        <TooltipIconButton
+                          type="button"
+                          tooltip="Upload PDF or image"
+                          className="size-9 shrink-0 sm:size-8"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <Plus className="size-5" />
+                        </TooltipIconButton>
                         <input
+                          ref={fileInputRef}
                           id="file-input"
                           type="file"
                           onChange={handleFileUpload}

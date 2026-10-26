@@ -119,6 +119,14 @@
     @apply border-border outline-ring/50;
   }
 
+  html[data-font-size="small"] {
+    font-size: 87.5%;
+  }
+
+  html[data-font-size="large"] {
+    font-size: 112.5%;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
