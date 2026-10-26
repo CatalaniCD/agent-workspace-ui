@@ -1,0 +1,24 @@
+stateDiagram-v2
+  state "Agent selected" as AgentSelected
+  state "New thread" as NewThread
+  state "Existing thread" as ExistingThread
+  state "Running" as Running
+  state "Interrupted" as Interrupted
+  state "Completed" as Completed
+  state "Rejected" as Rejected
+  state "Renamed" as Renamed
+
+  [*] --> AgentSelected
+  AgentSelected --> NewThread: New thread
+  AgentSelected --> ExistingThread: Select conversation
+  NewThread --> Running: Send prompt
+  ExistingThread --> Running: Send prompt
+  Running --> Completed: Success
+  Running --> Interrupted: Human-in-the-loop
+  Interrupted --> Running: Approve or edit
+  Interrupted --> Rejected: Reject
+  Completed --> [*]
+  Rejected --> [*]
+  ExistingThread --> Renamed: Rename + save
+  Renamed --> ExistingThread
+  ExistingThread --> [*]: Delete + confirm

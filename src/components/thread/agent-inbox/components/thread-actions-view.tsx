@@ -35,7 +35,7 @@ function ButtonGroup({
         variant="outline"
         className={cn(
           "rounded-l-md rounded-r-none border-r-[0px]",
-          showingState ? "text-black" : "bg-white",
+          showingState ? "text-foreground" : "bg-background",
         )}
         size="sm"
         onClick={handleShowState}
@@ -46,7 +46,7 @@ function ButtonGroup({
         variant="outline"
         className={cn(
           "rounded-l-none rounded-r-md border-l-[0px]",
-          showingDescription ? "text-black" : "bg-white",
+          showingDescription ? "text-foreground" : "bg-background",
         )}
         size="sm"
         onClick={handleShowDescription}
@@ -298,8 +298,8 @@ export function ThreadActionsView({
 
   if (!isValidHitlRequest(interrupt)) {
     return (
-      <div className="flex min-h-full w-full flex-col items-center justify-center rounded-2xl bg-gray-50/50 p-8">
-        <p className="text-sm text-gray-600">
+      <div className="bg-muted/30 flex min-h-full w-full flex-col items-center justify-center rounded-2xl p-8">
+        <p className="text-muted-foreground text-sm">
           Unable to render interrupt. The data provided is not in the expected
           HITL format.
         </p>
@@ -324,7 +324,7 @@ export function ThreadActionsView({
             <Button
               size="sm"
               variant="outline"
-              className="flex items-center gap-1 bg-white"
+              className="bg-background flex items-center gap-1"
               onClick={handleOpenInStudio}
             >
               Studio
@@ -342,7 +342,7 @@ export function ThreadActionsView({
       <div className="flex w-full flex-row flex-wrap items-center justify-start gap-2">
         <Button
           variant="outline"
-          className="border-gray-500 bg-white font-normal text-gray-800"
+          className="border-border bg-background text-foreground font-normal"
           onClick={handleResolve}
           disabled={actionsDisabled}
         >
@@ -351,7 +351,7 @@ export function ThreadActionsView({
         {hasMultipleActions && allAllowApprove && (
           <Button
             variant="outline"
-            className="border-gray-500 bg-white font-normal text-gray-800"
+            className="border-border bg-background text-foreground font-normal"
             onClick={handleApproveAll}
             disabled={actionsDisabled}
           >
@@ -371,7 +371,7 @@ export function ThreadActionsView({
                 onClick={() => setCurrentIndex(index)}
                 className={cn(
                   "h-2 flex-1 rounded-full border transition-colors",
-                  "border-gray-300 bg-gray-200",
+                  "border-border bg-muted",
                   status === "approve" && "border-emerald-500 bg-emerald-200",
                   status === "reject" && "border-red-500 bg-red-200",
                   status === "edit" && "border-amber-500 bg-amber-200",

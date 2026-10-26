@@ -17,7 +17,7 @@ export function ThreadIdTooltip({ threadId }: { threadId: string }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <p className="rounded-md bg-gray-100 px-1 py-[2px] font-mono text-[10px] leading-[12px] tracking-tighter">
+          <p className="bg-muted rounded-md px-1 py-[2px] font-mono text-[10px] leading-[12px] tracking-tighter">
             {firstThreeChars}...{lastThreeChars}
           </p>
         </TooltipTrigger>
@@ -50,7 +50,7 @@ export function ThreadIdCopyable({
       onClick={(e) => handleCopy(e)}
       variant="ghost"
       tooltip="Copy thread ID"
-      className="flex w-fit flex-grow-0 cursor-pointer items-center gap-1 rounded-md border-[1px] border-gray-200 p-1 hover:bg-gray-50/90"
+      className="border-border hover:bg-accent flex w-fit flex-grow-0 cursor-pointer items-center gap-1 rounded-md border-[1px] p-1"
     >
       <p className="font-mono text-xs">{showUUID ? threadId : "ID"}</p>
       <AnimatePresence
@@ -75,7 +75,7 @@ export function ThreadIdCopyable({
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.15 }}
           >
-            <Copy className="h-3 max-h-3 w-3 max-w-3 text-gray-500" />
+            <Copy className="text-muted-foreground h-3 max-h-3 w-3 max-w-3" />
           </motion.div>
         )}
       </AnimatePresence>

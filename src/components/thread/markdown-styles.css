@@ -43,3 +43,29 @@
 .markdown-content tr:nth-child(even) {
   background-color: #f9f9f9;
 }
+
+.dark .markdown-content code:not(pre code) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .markdown-content a {
+  color: #60a5fa;
+}
+
+.dark .markdown-content blockquote {
+  border-left-color: var(--border);
+  color: var(--muted-foreground);
+}
+
+.dark .markdown-content th,
+.dark .markdown-content td {
+  border-color: var(--border);
+}
+
+.dark .markdown-content th {
+  background-color: var(--muted);
+}
+
+.dark .markdown-content tr:nth-child(even) {
+  background-color: color-mix(in oklab, var(--muted) 55%, transparent);
+}

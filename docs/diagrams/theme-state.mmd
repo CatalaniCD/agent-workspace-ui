@@ -1,0 +1,12 @@
+stateDiagram-v2
+  state "Resolved light" as Light
+  state "Resolved dark" as Dark
+  state "No stored preference" as System
+
+  [*] --> System
+  System --> Light: OS prefers light
+  System --> Dark: OS prefers dark
+  Light --> Dark: Click theme button
+  Dark --> Light: Click theme button
+  Light --> Light: Persisted in localStorage
+  Dark --> Dark: Persisted in localStorage

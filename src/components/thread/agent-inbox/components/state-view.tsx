@@ -55,7 +55,7 @@ function MessagesRenderer({ messages }: { messages: BaseMessage[] }) {
             key={msg.id ?? `message-${idx}`}
             className="ml-2 flex w-full flex-col gap-[2px]"
           >
-            <p className="font-medium text-gray-700">{messageTypeLabel}:</p>
+            <p className="text-foreground font-medium">{messageTypeLabel}:</p>
             {content && <MarkdownText>{content}</MarkdownText>}
             {"tool_calls" in msg && msg.tool_calls ? (
               <div className="flex w-full flex-col items-start gap-1">
@@ -77,7 +77,7 @@ function MessagesRenderer({ messages }: { messages: BaseMessage[] }) {
 function StateViewRecursive(props: StateViewRecursiveProps) {
   const date = unknownToPrettyDate(props.value);
   if (date) {
-    return <p className="font-light text-gray-600">{date}</p>;
+    return <p className="text-muted-foreground font-light">{date}</p>;
   }
 
   if (["string", "number"].includes(typeof props.value)) {
@@ -89,7 +89,11 @@ function StateViewRecursive(props: StateViewRecursiveProps) {
   }
 
   if (props.value == null) {
-    return <p className="font-light whitespace-pre-wrap text-gray-600">null</p>;
+    return (
+      <p className="text-muted-foreground font-light whitespace-pre-wrap">
+        null
+      </p>
+    );
   }
 
   if (Array.isArray(props.value)) {
@@ -100,7 +104,7 @@ function StateViewRecursive(props: StateViewRecursiveProps) {
     const valueArray = props.value as unknown[];
     return (
       <div className="flex w-full flex-row items-start justify-start gap-1">
-        <span className="font-normal text-black">[</span>
+        <span className="text-foreground font-normal">[</span>
         {valueArray.map((item, idx) => {
           const itemRenderValue = baseMessageObject(item);
           return (
@@ -110,24 +114,24 @@ function StateViewRecursive(props: StateViewRecursiveProps) {
             >
               <StateViewRecursive value={itemRenderValue} />
               {idx < valueArray?.length - 1 && (
-                <span className="font-normal text-black">,&nbsp;</span>
+                <span className="text-foreground font-normal">,&nbsp;</span>
               )}
             </div>
           );
         })}
-        <span className="font-normal text-black">]</span>
+        <span className="text-foreground font-normal">]</span>
       </div>
     );
   }
 
   if (typeof props.value === "object") {
     if (Object.keys(props.value).length === 0) {
-      return <p className="font-light text-gray-600">{"{}"}</p>;
+      return <p className="text-muted-foreground font-light">{"{}"}</p>;
     }
     return (
       <div className="relative ml-6 flex w-full flex-col items-start justify-start gap-1">
         {/* Vertical line */}
-        <div className="absolute top-0 left-[-24px] h-full w-[1px] bg-gray-200" />
+        <div className="bg-border absolute top-0 left-[-24px] h-full w-[1px]" />
 
         {Object.entries(props.value).map(([key, value], idx) => (
           <div
@@ -135,7 +139,7 @@ function StateViewRecursive(props: StateViewRecursiveProps) {
             className="relative w-full"
           >
             {/* Horizontal connector line */}
-            <div className="absolute top-[10px] left-[-20px] h-[1px] w-[18px] bg-gray-200" />
+            <div className="bg-border absolute top-[10px] left-[-20px] h-[1px] w-[18px]" />
             <StateViewObject
               expanded={props.expanded}
               keyName={key}
@@ -154,7 +158,7 @@ function HasContentsEllipsis({ onClick }: { onClick?: () => void }) {
       onClick={onClick}
       className={cn(
         "rounded-md p-[2px] font-mono text-[10px] leading-3",
-        "bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-800",
+        "bg-muted/40 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
         "cursor-pointer transition-colors ease-in-out",
         "inline-block -translate-y-[2px]",
       )}
@@ -192,13 +196,13 @@ export function StateViewObject(props: StateViewProps) {
       >
         <div
           onClick={() => setExpanded((prev) => !prev)}
-          className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-md text-gray-500 transition-colors ease-in-out hover:bg-gray-100 hover:text-black"
+          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-5 w-5 cursor-pointer items-center justify-center rounded-md transition-colors ease-in-out"
         >
           <ChevronRight className="h-4 w-4" />
         </div>
       </motion.div>
       <div className="flex w-full flex-col items-start justify-start gap-1">
-        <p className="font-normal text-black">
+        <p className="text-foreground font-normal">
           {prettifyText(props.keyName)}{" "}
           {!expanded && (
             <HasContentsEllipsis onClick={() => setExpanded((prev) => !prev)} />
@@ -251,7 +255,7 @@ export function StateView({
       className={cn(
         "flex min-w-full flex-row gap-0",
         view === "state" &&
-          "border-t-[1px] border-gray-100 lg:border-t-[0px] lg:border-l-[1px]",
+          "border-border border-t-[1px] lg:border-t-[0px] lg:border-l-[1px]",
       )}
     >
       {view === "description" && (
@@ -278,7 +282,7 @@ export function StateView({
           <Button
             onClick={() => setExpanded((prev) => !prev)}
             variant="ghost"
-            className="text-gray-600"
+            className="text-muted-foreground"
             size="sm"
           >
             {expanded ? (
@@ -292,7 +296,7 @@ export function StateView({
         <Button
           onClick={() => handleShowSidePanel(false, false)}
           variant="ghost"
-          className="text-gray-600"
+          className="text-muted-foreground"
           size="sm"
         >
           <X className="h-4 w-4" />

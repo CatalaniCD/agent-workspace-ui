@@ -1,0 +1,28 @@
+sequenceDiagram
+  autonumber
+  actor Reviewer
+  participant UI as Reviews tab
+  participant URL as URL state
+  participant Chat as Thread / Inbox
+  participant SDK as LangGraph SDK
+  participant Server as LangGraph server
+
+  Reviewer->>UI: Open Operations → Reviews
+  UI->>SDK: threads.search({ status: "interrupted" })
+  SDK->>Server: POST /threads/search
+  Server-->>SDK: Interrupted threads + interrupt actions
+  SDK-->>UI: Review queue
+
+  Reviewer->>UI: Click Review
+  UI->>URL: set threadId, close operations
+  URL-->>Chat: Load selected thread
+  Chat->>SDK: Load history and pending interrupt
+  SDK->>Server: GET /threads/{id}/history
+  Server-->>Chat: Interrupt payload
+  Chat-->>Reviewer: Render action review
+
+  Reviewer->>Chat: Approve / Reject / Edit
+  Chat->>SDK: Submit decision and resume
+  SDK->>Server: Resume run
+  Server-->>Chat: Run continues
+  Chat-->>Reviewer: Updated thread state

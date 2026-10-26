@@ -1,0 +1,31 @@
+flowchart LR
+  subgraph Browser["Browser · Next.js App Router"]
+    UI["Chat + welcome<br/>AgentSelector · ThemeToggle"]
+    History["Thread history<br/>rename · delete"]
+    Ops["Operations sheet<br/>Scheduled · Runs · Reviews"]
+    Inbox["Review inbox<br/>approve · reject · edit"]
+    State["URL state (nuqs)<br/>apiUrl · assistantId · threadId<br/>operationsOpen · operationsTab"]
+    Providers["Providers<br/>Thread · Agents · Stream"]
+    SDK["LangGraph SDK client"]
+  end
+
+  subgraph Server["LangGraph deployment"]
+    Assistants["GET /assistants/search"]
+    Threads["POST /threads/search<br/>PATCH /threads/{id}<br/>DELETE /threads/{id}"]
+    Runs["GET /threads/{id}/runs"]
+    Crons["POST /runs/crons/search<br/>POST /runs/crons<br/>PATCH /runs/crons/{id}<br/>DELETE /runs/crons/{id}"]
+    Stream["GET /threads/{id}/history<br/>GET /threads/{id}/state<br/>POST /threads/{id}/runs"]
+  end
+
+  UI --> Providers
+  History --> Providers
+  Ops --> Providers
+  Inbox --> Providers
+  State --> UI
+  State --> Ops
+  Providers --> SDK
+  SDK --> Assistants
+  SDK --> Threads
+  SDK --> Runs
+  SDK --> Crons
+  SDK --> Stream

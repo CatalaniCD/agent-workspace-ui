@@ -8,7 +8,7 @@ export function ToolCallTable({ toolCall }: { toolCall: ToolCall }) {
         <thead>
           <tr>
             <th
-              className="bg-gray-100 px-2 py-0 text-left text-sm"
+              className="bg-muted px-2 py-0 text-left text-sm"
               colSpan={2}
             >
               {toolCall.name}
