@@ -6,7 +6,9 @@
 ![LangGraph SDK](https://img.shields.io/badge/LangGraph-SDK-1c3d5a)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-Agent Workspace is a Next.js interface for LangGraph deployments. It combines a streaming chat client with the day-to-day controls an operator needs: agent selection, conversation management, scheduled jobs, run monitoring, human-in-the-loop review, and light/dark themes.
+Agent Workspace is a Next.js operations UI for **Aegra**, the backend server that hosts your agents and graph workflows. It combines a streaming chat client with the day-to-day controls an operator needs: agent selection, conversation management, scheduled jobs, run monitoring, human-in-the-loop review, and light/dark themes.
+
+The LangGraph SDK connects to Aegra's LangGraph-compatible API. You can point the same UI at another compatible deployment by changing `NEXT_PUBLIC_API_URL`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./docs/images/ui-dark.png">
@@ -44,12 +46,12 @@ Agent Workspace is a Next.js interface for LangGraph deployments. It combines a 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./docs/images/architecture-dark.png">
-  <img src="./docs/images/architecture.png" alt="Architecture: the Next.js UI calls the LangGraph SDK, which calls assistants, threads, runs, crons, and stream endpoints.">
+  <img src="./docs/images/architecture.png" alt="Architecture: the Next.js UI calls the LangGraph SDK, which talks to Aegra's LangGraph-compatible API for assistants, threads, runs, crons, and streaming.">
 </picture>
 
-The UI keeps no application database. URL state (`apiUrl`, `assistantId`, `threadId`, `operationsOpen`, `operationsTab`) drives navigation, while the LangGraph SDK talks directly to the deployment.
+The UI keeps no application database. URL state (`apiUrl`, `assistantId`, `threadId`, `operationsOpen`, `operationsTab`) drives navigation, while the LangGraph SDK talks directly to Aegra. Aegra hosts the agents and graph workflows and exposes the assistants, threads, runs, crons, and streaming endpoints.
 
-| UI action              | SDK call                                    |
+| UI action              | Aegra / LangGraph API call                  |
 | ---------------------- | ------------------------------------------- |
 | Load agents            | `assistants.search`                         |
 | Load threads           | `threads.search`                            |
@@ -69,7 +71,8 @@ See [docs/design.md](./docs/design.md) for the full component map, review handof
 | Framework           | Next.js 16 App Router, React 19, TypeScript                  |
 | Styling             | Tailwind CSS 4, Radix UI primitives, shadcn-style components |
 | State and URL       | React context providers, `nuqs`                              |
-| LangGraph           | `@langchain/langgraph-sdk`                                   |
+| Backend             | Aegra, with a LangGraph-compatible API                       |
+| Client              | `@langchain/langgraph-sdk`                                   |
 | Themes              | `next-themes`                                                |
 | Motion and feedback | Framer Motion, Sonner                                        |
 
@@ -77,7 +80,7 @@ See [docs/design.md](./docs/design.md) for the full component map, review handof
 
 - Node.js 20 or newer
 - pnpm
-- A LangGraph server whose graph state includes a `messages` key
+- A running Aegra server, or another LangGraph-compatible deployment, whose graph state includes a `messages` key
 
 ## Quick start
 
@@ -86,10 +89,13 @@ pnpm install
 cp .env.example .env
 ```
 
-Set the deployment URL and assistant or graph ID in `.env`:
+Start Aegra with your agents and graph workflows, then set its URL and the agent or graph ID in `.env`:
 
 ```bash
+# Aegra server URL
 NEXT_PUBLIC_API_URL=http://localhost:2024
+
+# Agent or graph ID hosted by Aegra
 NEXT_PUBLIC_ASSISTANT_ID=agent
 ```
 
@@ -99,17 +105,17 @@ Start the app:
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). If you do not set the environment variables, the app shows a setup form where you can enter the deployment URL, assistant or graph ID, and optional credentials. The setup form can also load the available agents from the deployment.
+Open [http://localhost:3000](http://localhost:3000). If you do not set the environment variables, the app shows a setup form where you can enter the Aegra URL, agent or graph ID, and optional credentials. The setup form can also load the available agents from Aegra.
 
 ## Configuration
 
-| Variable                   | Required               | Purpose                                                                         |
-| -------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_API_URL`      | Yes                    | LangGraph deployment URL, or your own `/api` passthrough URL in production      |
-| `NEXT_PUBLIC_ASSISTANT_ID` | Yes                    | Assistant UUID or graph ID to use by default                                    |
-| `NEXT_PUBLIC_AUTH_SCHEME`  | No                     | Set to `langsmith-api-key` for LangSmith Agent Builder deployments              |
-| `LANGSMITH_API_KEY`        | Server-side only       | Injected by the API passthrough in production; never prefix with `NEXT_PUBLIC_` |
-| `LANGGRAPH_API_URL`        | Production passthrough | The upstream LangGraph deployment URL                                           |
+| Variable                   | Required               | Purpose                                                                                          |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_API_URL`      | Yes                    | Aegra server URL, another LangGraph-compatible URL, or your own `/api` passthrough in production |
+| `NEXT_PUBLIC_ASSISTANT_ID` | Yes                    | Agent UUID or graph ID hosted by Aegra                                                           |
+| `NEXT_PUBLIC_AUTH_SCHEME`  | No                     | Set to `langsmith-api-key` only for LangSmith Agent Builder deployments                          |
+| `LANGSMITH_API_KEY`        | Server-side only       | Injected by the API passthrough when required; never prefix with `NEXT_PUBLIC_`                  |
+| `LANGGRAPH_API_URL`        | Production passthrough | The upstream Aegra or LangGraph-compatible URL                                                   |
 
 The selected agent, active thread, and operations view are stored in the URL. The API key is handled by the existing client credentials helpers and must never be committed.
 
@@ -161,9 +167,11 @@ Open **Operations → Runs** to see recent runs across the selected agent. The d
 
 Open **Operations → Reviews** to see threads paused on a human-in-the-loop interrupt. Selecting a review closes Operations and opens the thread, where the existing approval surface handles approve, reject, and edit decisions. The review queue discovers work; it does not bypass the approval flow.
 
-### Themes
+### Themes and text size
 
-Use the moon/sun button in the header, sidebar, or setup form. The default is the system theme. The choice is persisted by `next-themes`.
+Use the moon/sun button in the header or setup form. The default is the system theme, persisted by `next-themes`.
+
+Use the **T** button in the workspace header to choose Small, Default, or Large text. The choice is persisted in `localStorage` and applies immediately on the next load.
 
 ## Project structure
 
@@ -214,7 +222,7 @@ Diagrams are available in light and dark variants under [docs/images](./docs/ima
 
 ## Production
 
-The default setup connects to LangGraph directly from the browser. For production, proxy requests so users do not need a LangSmith API key.
+The default setup connects to Aegra directly from the browser. For production, proxy requests if Aegra or your deployment requires server-side credentials.
 
 ### API passthrough quickstart
 
@@ -222,21 +230,21 @@ This repository includes the passthrough route at `src/app/api/[..._path]/route.
 
 ```bash
 NEXT_PUBLIC_ASSISTANT_ID="agent"
-LANGGRAPH_API_URL="https://my-agent.default.us.langgraph.app"
+LANGGRAPH_API_URL="https://your-aegra-server.example.com"
 NEXT_PUBLIC_API_URL="https://my-website.com/api"
-LANGSMITH_API_KEY="lsv2_..."
+LANGSMITH_API_KEY="lsv2_..." # only if your deployment requires it
 ```
 
 - `NEXT_PUBLIC_API_URL` points to your site plus `/api`.
-- `LANGGRAPH_API_URL` is the upstream LangGraph deployment.
-- `LANGSMITH_API_KEY` stays server-side and is injected by the proxy.
+- `LANGGRAPH_API_URL` is the upstream Aegra server.
+- `LANGSMITH_API_KEY` stays server-side and is injected by the proxy when required.
 
 > [!WARNING]
 > The API passthrough does not authenticate its callers. If you expose it with a LangSmith key and no gate of your own, anyone who reaches the URL can read, modify, and delete threads and store items, and start runs billed to your account. Add authentication before deploying, or remove the proxy route and use LangGraph custom authentication.
 
 ### Custom authentication
 
-For stronger control, configure custom authentication on the LangGraph deployment, set `NEXT_PUBLIC_API_URL` to the deployment URL, and pass the user's token through the stream client's `defaultHeaders` in `src/providers/Stream.tsx`.
+For stronger control, configure custom authentication on Aegra or your LangGraph-compatible deployment, set `NEXT_PUBLIC_API_URL` to the deployment URL, and pass the user's token through the stream client's `defaultHeaders` in `src/providers/Stream.tsx`.
 
 ## Message rendering
 

@@ -20,28 +20,28 @@ The design keeps the existing streaming and human-in-the-loop behavior. Reviews 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./images/architecture-dark.png">
-  <img src="./images/architecture.png" alt="Browser providers call the LangGraph SDK, which calls assistants, threads, runs, crons, and stream endpoints.">
+  <img src="./images/architecture.png" alt="Browser providers call the LangGraph SDK, which talks to Aegra's LangGraph-compatible assistants, threads, runs, crons, and stream endpoints.">
 </picture>
 
 Diagram source: [diagrams/architecture.mmd](./diagrams/architecture.mmd)
 
 ### Component responsibilities
 
-| Layer           | Component                                                  | Responsibility                                                                               |
-| --------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| App shell       | `src/app/page.tsx`                                         | Wraps the app in `ThreadProvider` → `AgentsProvider` → `StreamProvider` → `ArtifactProvider` |
-| Theme           | `src/app/layout.tsx`, `src/components/theme-toggle.tsx`    | Class-based light/dark selection, system default, persisted preference                       |
-| Thread state    | `src/providers/Thread.tsx`                                 | Shared SDK client, thread search, refresh, rename, delete                                    |
-| Agent state     | `src/providers/Agents.tsx`                                 | Assistant search, selection, loading and error state                                         |
-| Streaming       | `src/providers/Stream.tsx`                                 | Remounts the stream session when the assistant changes; setup form can discover assistants   |
-| Navigation      | `src/components/agents/agent-selector.tsx`                 | Header dropdown with refresh and selected state                                              |
-| History         | `src/components/thread/history/index.tsx`                  | Thread list, inline rename, delete dialog, operations trigger                                |
-| Operations      | `src/components/operations/index.tsx`                      | URL-backed sheet with Scheduled, Runs, Reviews tabs                                          |
-| Scheduled       | `crons-tab.tsx`, `create-cron-dialog.tsx`                  | List, create, enable/pause, delete                                                           |
-| Runs            | `runs-tab.tsx`                                             | Recent runs across the twelve most recently updated threads                                  |
-| Reviews         | `reviews-tab.tsx`                                          | Interrupted threads and their pending action requests                                        |
-| Reviews handoff | `src/components/thread/agent-inbox/*`                      | Existing approve / reject / edit flow                                                        |
-| Formatting      | `src/lib/threads.ts`, `src/components/operations/utils.ts` | Title resolution, search metadata, relative time, interrupt extraction                       |
+| Layer           | Component                                                                                      | Responsibility                                                                               |
+| --------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| App shell       | `src/app/page.tsx`                                                                             | Wraps the app in `ThreadProvider` → `AgentsProvider` → `StreamProvider` → `ArtifactProvider` |
+| Theme and text  | `src/app/layout.tsx`, `src/components/theme-toggle.tsx`, `src/components/font-size-toggle.tsx` | Class-based light/dark selection and Small/Default/Large text, both persisted                |
+| Thread state    | `src/providers/Thread.tsx`                                                                     | Shared SDK client, thread search, refresh, rename, delete                                    |
+| Agent state     | `src/providers/Agents.tsx`                                                                     | Assistant search, selection, loading and error state                                         |
+| Streaming       | `src/providers/Stream.tsx`                                                                     | Remounts the stream session when the assistant changes; setup form can discover assistants   |
+| Navigation      | `src/components/agents/agent-selector.tsx`                                                     | Header dropdown with refresh and selected state                                              |
+| History         | `src/components/thread/history/index.tsx`                                                      | Thread list, inline rename, delete dialog, operations trigger                                |
+| Operations      | `src/components/operations/index.tsx`                                                          | URL-backed sheet with Scheduled, Runs, Reviews tabs                                          |
+| Scheduled       | `crons-tab.tsx`, `create-cron-dialog.tsx`                                                      | List, create, enable/pause, delete                                                           |
+| Runs            | `runs-tab.tsx`                                                                                 | Recent runs across the twelve most recently updated threads                                  |
+| Reviews         | `reviews-tab.tsx`                                                                              | Interrupted threads and their pending action requests                                        |
+| Reviews handoff | `src/components/thread/agent-inbox/*`                                                          | Existing approve / reject / edit flow                                                        |
+| Formatting      | `src/lib/threads.ts`, `src/components/operations/utils.ts`                                     | Title resolution, search metadata, relative time, interrupt extraction                       |
 
 ## 3. Navigation and URL state
 
@@ -49,7 +49,7 @@ Diagram source: [diagrams/architecture.mmd](./diagrams/architecture.mmd)
 
 | Query key         | Owner                              | Behavior                                                                           |
 | ----------------- | ---------------------------------- | ---------------------------------------------------------------------------------- |
-| `apiUrl`          | `StreamProvider`, `ThreadProvider` | LangGraph deployment URL                                                           |
+| `apiUrl`          | `StreamProvider`, `ThreadProvider` | Aegra or LangGraph-compatible deployment URL                                       |
 | `assistantId`     | `AgentsProvider`, `StreamProvider` | Selected assistant UUID or graph ID                                                |
 | `threadId`        | `StreamProvider`, `ThreadProvider` | Active conversation; cleared on agent switch, new thread, or current-thread delete |
 | `operationsOpen`  | `OperationsSheet`                  | Opens or closes the operations sheet                                               |

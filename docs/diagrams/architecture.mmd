@@ -9,7 +9,7 @@ flowchart LR
     SDK["LangGraph SDK client"]
   end
 
-  subgraph Server["LangGraph deployment"]
+  subgraph Server["Aegra server · LangGraph API"]
     Assistants["GET /assistants/search"]
     Threads["POST /threads/search<br/>PATCH /threads/{id}<br/>DELETE /threads/{id}"]
     Runs["GET /threads/{id}/runs"]
