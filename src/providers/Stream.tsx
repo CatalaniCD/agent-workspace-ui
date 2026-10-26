@@ -5,9 +5,10 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 import { useStream } from "@langchain/langgraph-sdk/react";
-import { type Message } from "@langchain/langgraph-sdk";
+import { Assistant, type Message } from "@langchain/langgraph-sdk";
 import {
   uiMessageReducer,
   isUIMessage,
@@ -18,14 +19,15 @@ import {
 import { useQueryState } from "nuqs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LangGraphLogoSVG } from "@/components/icons/langgraph";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Bot, Check, LoaderCircle } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getApiKey, setApiKey as storeApiKey } from "@/lib/api-key";
 import { resolveApiUrl } from "@/lib/resolve-api-url";
+import { cn } from "@/lib/utils";
 import { useThreads } from "./Thread";
+import { createClient } from "./client";
 import { toast } from "sonner";
 
 export type StateType = { messages: Message[]; ui?: UIMessage[] };
@@ -175,6 +177,49 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
 
   const apiKey = useMemo(() => getApiKey(finalApiUrl) || "", [finalApiUrl]);
 
+  const formRef = useRef<HTMLFormElement>(null);
+  const [assistantIdInput, setAssistantIdInput] = useState(
+    assistantId || envAssistantId || DEFAULT_ASSISTANT_ID,
+  );
+  const [availableAgents, setAvailableAgents] = useState<Assistant[]>([]);
+  const [loadingAgents, setLoadingAgents] = useState(false);
+
+  const handleDiscoverAgents = async () => {
+    if (!formRef.current) return;
+
+    const formData = new FormData(formRef.current);
+    const nextApiUrl = String(formData.get("apiUrl") ?? "").trim();
+    const nextApiKey = String(formData.get("apiKey") ?? "").trim();
+
+    if (!nextApiUrl) {
+      toast.error("Enter a deployment URL first.");
+      return;
+    }
+
+    setLoadingAgents(true);
+    try {
+      const tempClient = createClient(
+        nextApiUrl,
+        nextApiKey || undefined,
+        isAgentBuilder ? AGENT_BUILDER_AUTH_SCHEME : undefined,
+      );
+      const nextAgents = await tempClient.assistants.search({ limit: 100 });
+      setAvailableAgents(nextAgents);
+      if (nextAgents.length === 0) {
+        toast.info("No agents found on this deployment.");
+      } else {
+        toast.success(
+          `Loaded ${nextAgents.length} agent${nextAgents.length === 1 ? "" : "s"}.`,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to discover agents", error);
+      toast.error("Could not load agents. Check the URL and API key.");
+    } finally {
+      setLoadingAgents(false);
+    }
+  };
+
   // Show the form if we: don't have an API URL, or don't have an assistant ID
   if (!finalApiUrl || !finalAssistantId) {
     return (
@@ -182,17 +227,17 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
         <div className="animate-in fade-in-0 zoom-in-95 bg-background flex max-w-3xl flex-col rounded-lg border shadow-lg">
           <div className="mt-14 flex flex-col gap-2 border-b p-6">
             <div className="flex flex-col items-start gap-2">
-              <LangGraphLogoSVG className="h-7" />
               <h1 className="text-xl font-semibold tracking-tight">
-                Agent Chat
+                Agent Workspace
               </h1>
             </div>
             <p className="text-muted-foreground">
-              Welcome to Agent Chat! Before you get started, you need to enter
-              the URL of the deployment and the assistant / graph ID.
+              Welcome to Agent Workspace! Before you get started, you need to
+              enter the URL of the deployment and the assistant / graph ID.
             </p>
           </div>
           <form
+            ref={formRef}
             onSubmit={(e) => {
               e.preventDefault();
 
@@ -229,9 +274,25 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="assistantId">
-                Assistant / Graph ID<span className="text-rose-500">*</span>
-              </Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="assistantId">
+                  Assistant / Graph ID<span className="text-rose-500">*</span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleDiscoverAgents()}
+                  disabled={loadingAgents}
+                >
+                  {loadingAgents ? (
+                    <LoaderCircle className="size-4 animate-spin" />
+                  ) : (
+                    <Bot className="size-4" />
+                  )}
+                  Load agents
+                </Button>
+              </div>
               <p className="text-muted-foreground text-sm">
                 This is the ID of the graph (can be the graph name), or
                 assistant to fetch threads from, and invoke when actions are
@@ -241,9 +302,40 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
                 id="assistantId"
                 name="assistantId"
                 className="bg-background"
-                defaultValue={assistantId || DEFAULT_ASSISTANT_ID}
+                value={assistantIdInput}
+                onChange={(event) => setAssistantIdInput(event.target.value)}
                 required
               />
+              {availableAgents.length > 0 && (
+                <div className="bg-background flex max-h-44 flex-col overflow-y-auto rounded-md border p-1">
+                  {availableAgents.map((agent) => {
+                    const selected =
+                      agent.assistant_id === assistantIdInput ||
+                      agent.graph_id === assistantIdInput;
+                    return (
+                      <button
+                        key={agent.assistant_id}
+                        type="button"
+                        onClick={() => setAssistantIdInput(agent.assistant_id)}
+                        className={cn(
+                          "hover:bg-accent flex items-center justify-between gap-3 rounded-sm px-2 py-1.5 text-left",
+                          selected && "bg-accent",
+                        )}
+                      >
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm">
+                            {agent.name || agent.graph_id}
+                          </span>
+                          <span className="text-muted-foreground truncate text-xs">
+                            {agent.graph_id}
+                          </span>
+                        </span>
+                        {selected && <Check className="size-4 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -298,6 +390,7 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <StreamSession
+      key={finalAssistantId}
       apiKey={apiKey}
       apiUrl={finalApiUrl}
       assistantId={finalAssistantId}

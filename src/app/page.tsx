@@ -1,6 +1,7 @@
 "use client";
 
 import { Thread } from "@/components/thread";
+import { AgentsProvider } from "@/providers/Agents";
 import { StreamProvider } from "@/providers/Stream";
 import { ThreadProvider } from "@/providers/Thread";
 import { ArtifactProvider } from "@/components/thread/artifact";
@@ -12,11 +13,13 @@ export default function DemoPage(): React.ReactNode {
     <React.Suspense fallback={<div>Loading (layout)...</div>}>
       <Toaster />
       <ThreadProvider>
-        <StreamProvider>
-          <ArtifactProvider>
-            <Thread />
-          </ArtifactProvider>
-        </StreamProvider>
+        <AgentsProvider>
+          <StreamProvider>
+            <ArtifactProvider>
+              <Thread />
+            </ArtifactProvider>
+          </StreamProvider>
+        </AgentsProvider>
       </ThreadProvider>
     </React.Suspense>
   );

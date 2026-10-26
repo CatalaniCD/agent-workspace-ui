@@ -12,9 +12,9 @@ import {
   DO_NOT_RENDER_ID_PREFIX,
   ensureToolCallsHaveResponses,
 } from "@/lib/ensure-tool-responses";
-import { LangGraphLogoSVG } from "../icons/langgraph";
 import { TooltipIconButton } from "./tooltip-icon-button";
 import {
+  Activity,
   ArrowDown,
   LoaderCircle,
   PanelRightOpen,
@@ -23,6 +23,8 @@ import {
   XIcon,
   Plus,
 } from "lucide-react";
+import { AgentSelector } from "@/components/agents/agent-selector";
+import { OperationsSheet } from "@/components/operations";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
@@ -30,7 +32,6 @@ import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
-import { GitHubSVG } from "../icons/github";
 import {
   Tooltip,
   TooltipContent,
@@ -87,30 +88,6 @@ function ScrollToBottom(props: { className?: string }) {
   );
 }
 
-function OpenGitHubRepo() {
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <a
-            href="https://github.com/langchain-ai/agent-chat-ui"
-            target="_blank"
-            className="flex items-center justify-center"
-          >
-            <GitHubSVG
-              width="24"
-              height="24"
-            />
-          </a>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <p>Open GitHub repo</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
-
 function ConnectedHost({ apiUrl }: { apiUrl: string }) {
   let host: string;
   try {
@@ -142,6 +119,10 @@ export function Thread() {
   const [threadId, _setThreadId] = useQueryState("threadId");
   const [chatHistoryOpen, setChatHistoryOpen] = useQueryState(
     "chatHistoryOpen",
+    parseAsBoolean.withDefault(false),
+  );
+  const [, setOperationsOpen] = useQueryState(
+    "operationsOpen",
     parseAsBoolean.withDefault(false),
   );
   const [hideToolCalls, setHideToolCalls] = useQueryState(
@@ -334,11 +315,12 @@ export function Thread() {
         >
           {!chatStarted && (
             <div className="absolute top-0 left-0 z-10 flex w-full items-center justify-between gap-3 p-2 pl-4">
-              <div>
+              <div className="flex min-w-0 items-center gap-2">
                 {(!chatHistoryOpen || !isLargeScreen) && (
                   <Button
                     className="hover:bg-gray-100"
                     variant="ghost"
+                    size="icon"
                     onClick={() => setChatHistoryOpen((p) => !p)}
                   >
                     {chatHistoryOpen ? (
@@ -346,11 +328,27 @@ export function Thread() {
                     ) : (
                       <PanelRightClose className="size-5" />
                     )}
+                    <span className="sr-only">Toggle thread history</span>
                   </Button>
                 )}
+                <AgentSelector />
               </div>
-              <div className="absolute top-2 right-4 flex items-center">
-                <OpenGitHubRepo />
+              <div className="flex shrink-0 items-center gap-2">
+                <TooltipIconButton
+                  tooltip="Operations"
+                  className="size-8 p-1.5"
+                  onClick={() => setOperationsOpen(true)}
+                >
+                  <Activity className="size-5" />
+                </TooltipIconButton>
+                <TooltipIconButton
+                  tooltip="New thread"
+                  className="size-8 p-1.5"
+                  variant="ghost"
+                  onClick={() => setThreadId(null)}
+                >
+                  <SquarePen className="size-5" />
+                </TooltipIconButton>
               </div>
             </div>
           )}
@@ -384,21 +382,22 @@ export function Thread() {
                     damping: 30,
                   }}
                 >
-                  <LangGraphLogoSVG
-                    width={32}
-                    height={32}
-                  />
-                  <span className="text-xl font-semibold tracking-tight">
-                    Agent Chat
+                  <span className="hidden text-xl font-semibold tracking-tight sm:inline">
+                    Agent Workspace
                   </span>
                 </motion.button>
                 <ConnectedHost apiUrl={stream.apiUrl} />
+                <AgentSelector />
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center">
-                  <OpenGitHubRepo />
-                </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <TooltipIconButton
+                  tooltip="Operations"
+                  className="size-8 p-1.5"
+                  onClick={() => setOperationsOpen(true)}
+                >
+                  <Activity className="size-5" />
+                </TooltipIconButton>
                 <TooltipIconButton
                   size="lg"
                   className="p-4"
@@ -461,9 +460,8 @@ export function Thread() {
                 <div className="sticky bottom-0 flex flex-col items-center gap-8 bg-white">
                   {!chatStarted && (
                     <div className="flex items-center gap-3">
-                      <LangGraphLogoSVG className="h-8 flex-shrink-0" />
                       <h1 className="text-2xl font-semibold tracking-tight">
-                        Agent Chat
+                        Agent Workspace
                       </h1>
                     </div>
                   )}
@@ -585,6 +583,7 @@ export function Thread() {
           </div>
         </div>
       </div>
+      <OperationsSheet />
     </div>
   );
 }
