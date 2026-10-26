@@ -458,7 +458,7 @@ export function Thread() {
                 </>
               }
               footer={
-                <div className="bg-background sticky bottom-0 flex flex-col items-center gap-4 pb-[env(safe-area-inset-bottom)] sm:gap-8">
+                <div className="bg-background sticky bottom-0 flex w-full min-w-0 flex-col items-center gap-4 pb-[env(safe-area-inset-bottom)] sm:gap-8">
                   {!chatStarted && (
                     <div className="flex items-center gap-3">
                       <h1 className="text-2xl font-semibold tracking-tight">
@@ -472,7 +472,7 @@ export function Thread() {
                   <div
                     ref={dropRef}
                     className={cn(
-                      "bg-muted relative z-10 mx-auto mb-4 w-full max-w-3xl rounded-2xl shadow-xs transition-all sm:mb-8",
+                      "bg-muted relative z-10 mx-auto mb-4 w-full max-w-[min(48rem,calc(100vw-2rem))] min-w-0 rounded-2xl shadow-xs transition-all sm:mb-8",
                       dragOver
                         ? "border-primary border-2 border-dotted"
                         : "border border-solid",
@@ -480,7 +480,7 @@ export function Thread() {
                   >
                     <form
                       onSubmit={handleSubmit}
-                      className="mx-auto grid max-w-3xl grid-rows-[1fr_auto] gap-2"
+                      className="mx-auto grid w-full min-w-0 grid-rows-[1fr_auto] gap-2"
                     >
                       <ContentBlocksPreview
                         blocks={contentBlocks}
@@ -504,10 +504,10 @@ export function Thread() {
                           }
                         }}
                         placeholder="Type your message..."
-                        className="field-sizing-content resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
+                        className="field-sizing-content w-full min-w-0 resize-none border-none bg-transparent p-3.5 pb-0 shadow-none ring-0 outline-none focus:ring-0 focus:outline-none"
                       />
 
-                      <div className="flex items-center gap-1 p-2 pt-4 sm:gap-2">
+                      <div className="flex w-full min-w-0 items-center gap-1 p-2 pt-4 sm:gap-2">
                         <TooltipIconButton
                           type="button"
                           tooltip={
@@ -557,7 +557,7 @@ export function Thread() {
                         ) : (
                           <Button
                             type="submit"
-                            className="ml-auto shadow-md transition-all"
+                            className="ml-auto shrink-0 shadow-md transition-all"
                             disabled={
                               isLoading ||
                               (!input.trim() && contentBlocks.length === 0)
