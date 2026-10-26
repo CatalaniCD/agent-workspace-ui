@@ -264,17 +264,16 @@ Artifacts render in the side panel. Graph code can attach an artifact component 
 
 ## Troubleshooting
 
-| Symptom                                 | Checks                                                                                                                                     |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Agent list is empty                     | Confirm `NEXT_PUBLIC_API_URL` and that `GET /info` responds. Check credentials or `NEXT_PUBLIC_AUTH_SCHEME` for Agent Builder deployments. |
-| Thread history is empty                 | Confirm the selected assistant or graph is the one that owns the threads. Switching agents scopes the list.                                |
-| A cron is missing                       | Confirm the correct agent is selected, the task is enabled, and the schedule is a valid five-field expression.                             |
-| A cron did not run                      | Check the Runs tab and the deployment logs. Verify the timezone and the optional end time.                                                 |
-| A review is missing                     | Only threads with `status: "interrupted"` appear. The queue shows up to fifty threads.                                                     |
-| Runs look incomplete                    | The dashboard loads the twelve most recently updated threads and five runs per thread. Open a thread for its full run history.             |
-| Theme is wrong on first paint           | The default is the system theme. Toggle once to persist an explicit preference.                                                            |
-| API requests return 401/403             | Check the LangSmith key, auth scheme, or custom authentication headers in `src/providers/Stream.tsx`.                                      |
-| Build reports a Tailwind config warning | This is a pre-existing ESM/CommonJS warning from `tailwind.config.js`; it does not fail the build.                                         |
+| Symptom                       | Checks                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Agent list is empty           | Confirm `NEXT_PUBLIC_API_URL` and that `GET /info` responds. Check credentials or `NEXT_PUBLIC_AUTH_SCHEME` for Agent Builder deployments. |
+| Thread history is empty       | Confirm the selected assistant or graph is the one that owns the threads. Switching agents scopes the list.                                |
+| A cron is missing             | Confirm the correct agent is selected, the task is enabled, and the schedule is a valid five-field expression.                             |
+| A cron did not run            | Check the Runs tab and the deployment logs. Verify the timezone and the optional end time.                                                 |
+| A review is missing           | Only threads with `status: "interrupted"` appear. The queue shows up to fifty threads.                                                     |
+| Runs look incomplete          | The dashboard loads the twelve most recently updated threads and five runs per thread. Open a thread for its full run history.             |
+| Theme is wrong on first paint | The default is the system theme. Toggle once to persist an explicit preference.                                                            |
+| API requests return 401/403   | Check the LangSmith key, auth scheme, or custom authentication headers in `src/providers/Stream.tsx`.                                      |
 
 ## Contributing
 
