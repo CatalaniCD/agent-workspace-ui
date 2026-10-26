@@ -1,254 +1,281 @@
-# Agent Chat UI
+# Agent Workspace
 
-Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
+![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)
+![LangGraph SDK](https://img.shields.io/badge/LangGraph-SDK-1c3d5a)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
 
-> [!NOTE]
-> 🎥 Watch the video setup guide [here](https://youtu.be/lInrwVnZ83o).
+Agent Workspace is a Next.js interface for LangGraph deployments. It combines a streaming chat client with the day-to-day controls an operator needs: agent selection, conversation management, scheduled jobs, run monitoring, human-in-the-loop review, and light/dark themes.
 
-## Setup
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/images/ui-dark.png">
+  <img src="./docs/images/ui-light.png" alt="Agent Workspace in light mode">
+</picture>
 
-> [!TIP]
-> Don't want to run the app locally? Use the deployed site here: [agentchat.vercel.app](https://agentchat.vercel.app)!
+## Contents
 
-First, clone the repository, or run the [`npx` command](https://www.npmjs.com/package/create-agent-chat-app):
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Requirements](#requirements)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Using the workspace](#using-the-workspace)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Production](#production)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-```bash
-npx create-agent-chat-app
-```
+## Features
 
-or
+- **Agent selection** — discover assistants from the deployment and switch graphs without editing environment variables.
+- **Conversation management** — rename threads inline and delete them with confirmation.
+- **Scheduled jobs** — create cron-based runs, set a timezone and optional end time, pause or enable tasks, and delete them.
+- **Scheduling guide** — an in-product walkthrough covering cron fields, examples, timezones, and safe defaults.
+- **Runs dashboard** — scan recent runs across the selected agent, filter by status, and open the related thread.
+- **Review queue** — find threads paused on a human-in-the-loop interrupt and open them in the existing approval flow.
+- **Themes** — light, dark, or system, with a persistent toggle.
+- **Streaming chat** — messages, tool calls, artifacts, and interrupts use the existing LangGraph SDK behavior.
 
-```bash
-git clone https://github.com/langchain-ai/agent-chat-ui.git
+## Architecture
 
-cd agent-chat-ui
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/images/architecture-dark.png">
+  <img src="./docs/images/architecture.png" alt="Architecture: the Next.js UI calls the LangGraph SDK, which calls assistants, threads, runs, crons, and stream endpoints.">
+</picture>
 
-Install dependencies:
+The UI keeps no application database. URL state (`apiUrl`, `assistantId`, `threadId`, `operationsOpen`, `operationsTab`) drives navigation, while the LangGraph SDK talks directly to the deployment.
+
+| UI action              | SDK call                                    |
+| ---------------------- | ------------------------------------------- |
+| Load agents            | `assistants.search`                         |
+| Load threads           | `threads.search`                            |
+| Rename thread          | `threads.update`                            |
+| Delete thread          | `threads.delete`                            |
+| List or create crons   | `crons.search`, `crons.create`              |
+| Enable or delete crons | `crons.update`, `crons.delete`              |
+| Recent runs            | `runs.list` per thread                      |
+| Review queue           | `threads.search({ status: "interrupted" })` |
+
+See [docs/design.md](./docs/design.md) for the full component map, review handoff, and tradeoffs.
+
+## Tech stack
+
+| Layer               | Technology                                                   |
+| ------------------- | ------------------------------------------------------------ |
+| Framework           | Next.js 16 App Router, React 19, TypeScript                  |
+| Styling             | Tailwind CSS 4, Radix UI primitives, shadcn-style components |
+| State and URL       | React context providers, `nuqs`                              |
+| LangGraph           | `@langchain/langgraph-sdk`                                   |
+| Themes              | `next-themes`                                                |
+| Motion and feedback | Framer Motion, Sonner                                        |
+
+## Requirements
+
+- Node.js 20 or newer
+- pnpm
+- A LangGraph server whose graph state includes a `messages` key
+
+## Quick start
 
 ```bash
 pnpm install
+cp .env.example .env
 ```
 
-Run the app:
+Set the deployment URL and assistant or graph ID in `.env`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:2024
+NEXT_PUBLIC_ASSISTANT_ID=agent
+```
+
+Start the app:
 
 ```bash
 pnpm dev
 ```
 
-The app will be available at `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000). If you do not set the environment variables, the app shows a setup form where you can enter the deployment URL, assistant or graph ID, and optional credentials. The setup form can also load the available agents from the deployment.
 
-## Usage
+## Configuration
 
-Once the app is running (or if using the deployed site), you'll be prompted to enter:
+| Variable                   | Required               | Purpose                                                                         |
+| -------------------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`      | Yes                    | LangGraph deployment URL, or your own `/api` passthrough URL in production      |
+| `NEXT_PUBLIC_ASSISTANT_ID` | Yes                    | Assistant UUID or graph ID to use by default                                    |
+| `NEXT_PUBLIC_AUTH_SCHEME`  | No                     | Set to `langsmith-api-key` for LangSmith Agent Builder deployments              |
+| `LANGSMITH_API_KEY`        | Server-side only       | Injected by the API passthrough in production; never prefix with `NEXT_PUBLIC_` |
+| `LANGGRAPH_API_URL`        | Production passthrough | The upstream LangGraph deployment URL                                           |
 
-- **Deployment URL**: The URL of the LangGraph server you want to chat with. This can be a production or development URL.
-- **Assistant/Graph ID**: The name of the graph, or ID of the assistant to use when fetching, and submitting runs via the chat interface.
-- **LangSmith API Key**: (only required for connecting to deployed LangGraph servers) Your LangSmith API key to use when authenticating requests sent to LangGraph servers.
-- **Built with Agent Builder**: Toggle this on for Agent Builder deployments. This automatically sets the auth scheme to `langsmith-api-key`.
+The selected agent, active thread, and operations view are stored in the URL. The API key is handled by the existing client credentials helpers and must never be committed.
 
-After entering these values, click `Continue`. You'll then be redirected to a chat interface where you can start chatting with your LangGraph server.
+## Using the workspace
 
-## Environment Variables
+### Select an agent
 
-You can bypass the initial setup form by setting the following environment variables:
+Use the agent dropdown in the header. Switching agents clears the active conversation and reloads the thread list and operations for the new agent.
+
+### Manage conversations
+
+- **New thread** — click the compose icon in the header.
+- **Rename** — click the pencil icon on a thread, edit the name, and press Enter or the check button.
+- **Delete** — click the trash icon and confirm. Deleting the active thread resets the chat.
+
+Thread titles are stored in thread metadata under `title`. If no title is stored, the UI falls back to `thread_name`, `name`, the first human message, then the thread ID.
+
+### Scheduled jobs
+
+Open **Operations → Scheduled** and click **New task**.
+
+1. Select the agent that should run the job.
+2. Name the task.
+3. Enter a five-field cron expression or choose a preset.
+4. Set the timezone (IANA names such as `America/New_York`).
+5. Write a self-contained prompt. It becomes the first human message of every run.
+6. Optionally set an end time.
+7. Choose whether the thread is kept after the run.
+8. Create the task and confirm it appears with the expected next run.
+
+Common schedules:
+
+| Expression     | Meaning                              |
+| -------------- | ------------------------------------ |
+| `0 9 * * *`    | Every day at 09:00                   |
+| `0 9 * * 1-5`  | Weekdays at 09:00                    |
+| `0 * * * *`    | Every hour                           |
+| `*/15 * * * *` | Every 15 minutes                     |
+| `30 17 * * 5`  | Fridays at 17:30                     |
+| `0 9 1 * *`    | The first day of each month at 09:00 |
+
+Cron fields are minute, hour, day of month, month, and day of week. There is no seconds field. Use the **How to schedule jobs** button in Operations for the full walkthrough.
+
+### Runs
+
+Open **Operations → Runs** to see recent runs across the selected agent. The dashboard is bounded to the twelve most recently updated threads and five runs per thread to keep requests predictable. Filter by status or open the related conversation.
+
+### Reviews
+
+Open **Operations → Reviews** to see threads paused on a human-in-the-loop interrupt. Selecting a review closes Operations and opens the thread, where the existing approval surface handles approve, reject, and edit decisions. The review queue discovers work; it does not bypass the approval flow.
+
+### Themes
+
+Use the moon/sun button in the header, sidebar, or setup form. The default is the system theme. The choice is persisted by `next-themes`.
+
+## Project structure
+
+```text
+src/
+  app/                    Next.js app shell and API passthrough route
+  components/
+    agents/               Agent selector
+    operations/           Scheduled, runs, reviews, and scheduling guide
+    thread/               Chat, history, messages, artifacts, agent inbox
+    ui/                   Shared Radix-based primitives
+  lib/                    Thread helpers, API URL, credentials, utilities
+  providers/              Thread, agents, stream, and client state
+docs/
+  intent.md               Problem, outcome, constraints
+  design.md               Architecture, flows, API surface, tradeoffs
+  plan.md                 Delivery phases and verification
+  review.md               PR review policy and gates
+  testing.md              Test matrix and continuous evals
+  diagrams/               Mermaid sources
+  images/                 Rendered diagrams and UI screenshots
+```
+
+## Development
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:2024
-NEXT_PUBLIC_ASSISTANT_ID=agent
-NEXT_PUBLIC_AUTH_SCHEME=
+pnpm dev          # start the development server
+pnpm build        # production build
+pnpm start        # start the production server
+pnpm lint         # ESLint
+pnpm lint:fix     # ESLint with fixes
+pnpm format       # Prettier
+pnpm format:check # Prettier check
+pnpm exec tsc --noEmit
 ```
 
-> [!NOTE]
-> If you are connecting to a LangSmith Agent Builder deployment, set `NEXT_PUBLIC_AUTH_SCHEME=langsmith-api-key`.
+Lint currently reports warnings only. Treat new errors as blocking. See [docs/testing.md](./docs/testing.md) for the smoke matrix and the planned Playwright and continuous-eval coverage.
 
-> [!TIP]
-> If you want to connect to a production LangGraph server, read the [Going to Production](#going-to-production) section.
+## Documentation
 
-To use these variables:
+- [Intent](./docs/intent.md)
+- [Design](./docs/design.md)
+- [Plan](./docs/plan.md)
+- [Review policy](./docs/review.md)
+- [Testing and verification](./docs/testing.md)
 
-1. Copy the `.env.example` file to a new file named `.env`
-2. Fill in the values in the `.env` file
-3. Restart the application
+Diagrams are available in light and dark variants under [docs/images](./docs/images). Sources live in [docs/diagrams](./docs/diagrams).
 
-When these environment variables are set, the application will use them instead of showing the setup form.
+## Production
 
-## Hiding Messages in the Chat
+The default setup connects to LangGraph directly from the browser. For production, proxy requests so users do not need a LangSmith API key.
 
-You can control the visibility of messages within the Agent Chat UI in two main ways:
+### API passthrough quickstart
 
-**1. Prevent Live Streaming:**
-
-To stop messages from being displayed _as they stream_ from an LLM call, add the `langsmith:nostream` tag to the chat model's configuration. The UI normally uses `on_chat_model_stream` events to render streaming messages; this tag prevents those events from being emitted for the tagged model.
-
-_Python Example:_
-
-```python
-from langchain_anthropic import ChatAnthropic
-
-# Add tags via the .with_config method
-model = ChatAnthropic().with_config(
-    config={"tags": ["langsmith:nostream"]}
-)
-```
-
-_TypeScript Example:_
-
-```typescript
-import { ChatAnthropic } from "@langchain/anthropic";
-
-const model = new ChatAnthropic()
-  // Add tags via the .withConfig method
-  .withConfig({ tags: ["langsmith:nostream"] });
-```
-
-**Note:** Even if streaming is hidden this way, the message will still appear after the LLM call completes if it's saved to the graph's state without further modification.
-
-**2. Hide Messages Permanently:**
-
-To ensure a message is _never_ displayed in the chat UI (neither during streaming nor after being saved to state), prefix its `id` field with `do-not-render-` _before_ adding it to the graph's state, along with adding the `langsmith:do-not-render` tag to the chat model's configuration. The UI explicitly filters out any message whose `id` starts with this prefix.
-
-_Python Example:_
-
-```python
-result = model.invoke([messages])
-# Prefix the ID before saving to state
-result.id = f"do-not-render-{result.id}"
-return {"messages": [result]}
-```
-
-_TypeScript Example:_
-
-```typescript
-const result = await model.invoke([messages]);
-// Prefix the ID before saving to state
-result.id = `do-not-render-${result.id}`;
-return { messages: [result] };
-```
-
-This approach guarantees the message remains completely hidden from the user interface.
-
-## Rendering Artifacts
-
-The Agent Chat UI supports rendering artifacts in the chat. Artifacts are rendered in a side panel to the right of the chat. To render an artifact, you can obtain the artifact context from the `thread.meta.artifact` field. Here's a sample utility hook for obtaining the artifact context:
-
-```tsx
-export function useArtifact<TContext = Record<string, unknown>>() {
-  type Component = (props: {
-    children: React.ReactNode;
-    title?: React.ReactNode;
-  }) => React.ReactNode;
-
-  type Context = TContext | undefined;
-
-  type Bag = {
-    open: boolean;
-    setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-
-    context: Context;
-    setContext: (value: Context | ((prev: Context) => Context)) => void;
-  };
-
-  const thread = useStreamContext<
-    { messages: Message[]; ui: UIMessage[] },
-    { MetaType: { artifact: [Component, Bag] } }
-  >();
-
-  return thread.meta?.artifact;
-}
-```
-
-After which you can render additional content using the `Artifact` component from the `useArtifact` hook:
-
-```tsx
-import { useArtifact } from "../utils/use-artifact";
-import { LoaderIcon } from "lucide-react";
-
-export function Writer(props: {
-  title?: string;
-  content?: string;
-  description?: string;
-}) {
-  const [Artifact, { open, setOpen }] = useArtifact();
-
-  return (
-    <>
-      <div
-        onClick={() => setOpen(!open)}
-        className="cursor-pointer rounded-lg border p-4"
-      >
-        <p className="font-medium">{props.title}</p>
-        <p className="text-sm text-gray-500">{props.description}</p>
-      </div>
-
-      <Artifact title={props.title}>
-        <p className="whitespace-pre-wrap p-4">{props.content}</p>
-      </Artifact>
-    </>
-  );
-}
-```
-
-## Going to Production
-
-Once you're ready to go to production, you'll need to update how you connect, and authenticate requests to your deployment. By default, the Agent Chat UI is setup for local development, and connects to your LangGraph server directly from the client. This is not possible if you want to go to production, because it requires every user to have their own LangSmith API key, and set the LangGraph configuration themselves.
-
-### Production Setup
-
-To productionize the Agent Chat UI, you'll need to pick one of two ways to authenticate requests to your LangGraph server. Below, I'll outline the two options:
-
-### Quickstart - API Passthrough
-
-The quickest way to productionize the Agent Chat UI is to use the [API Passthrough](https://github.com/bracesproul/langgraph-nextjs-api-passthrough) package ([NPM link here](https://www.npmjs.com/package/langgraph-nextjs-api-passthrough)). This package provides a simple way to proxy requests to your LangGraph server, attaching your LangSmith API key on the server so your users never need one. It does not authenticate the callers of that proxy for you — see [Authenticating the API Passthrough](#authenticating-the-api-passthrough) below, which you should set up before deploying.
-
-This repository already contains the proxy route itself. The only configuration you need to do is set the proper environment variables.
+This repository includes the passthrough route at `src/app/api/[..._path]/route.ts`. Configure:
 
 ```bash
 NEXT_PUBLIC_ASSISTANT_ID="agent"
-# This should be the deployment URL of your LangGraph server
 LANGGRAPH_API_URL="https://my-agent.default.us.langgraph.app"
-# This should be the URL of your website + "/api". This is how you connect to the API proxy
 NEXT_PUBLIC_API_URL="https://my-website.com/api"
-# Your LangSmith API key which is injected into requests inside the API proxy
 LANGSMITH_API_KEY="lsv2_..."
 ```
 
-Let's cover what each of these environment variables does:
-
-- `NEXT_PUBLIC_ASSISTANT_ID`: The ID of the assistant you want to use when fetching, and submitting runs via the chat interface. This still needs the `NEXT_PUBLIC_` prefix, since it's not a secret, and we use it on the client when submitting requests.
-- `LANGGRAPH_API_URL`: The URL of your LangGraph server. This should be the production deployment URL.
-- `NEXT_PUBLIC_API_URL`: The URL of your website + `/api`. This is how you connect to the API proxy. For the [Agent Chat demo](https://agentchat.vercel.app), this would be set as `https://agentchat.vercel.app/api`. You should set this to whatever your production URL is.
-- `LANGSMITH_API_KEY`: Your LangSmith API key to use when authenticating requests sent to LangGraph servers. Once again, do _not_ prefix this with `NEXT_PUBLIC_` since it's a secret, and is only used on the server when the API proxy injects it into the request to your deployed LangGraph server.
-
-For in depth documentation, consult the [LangGraph Next.js API Passthrough](https://www.npmjs.com/package/langgraph-nextjs-api-passthrough) docs.
-
-### Authenticating the API Passthrough
+- `NEXT_PUBLIC_API_URL` points to your site plus `/api`.
+- `LANGGRAPH_API_URL` is the upstream LangGraph deployment.
+- `LANGSMITH_API_KEY` stays server-side and is injected by the proxy.
 
 > [!WARNING]
-> The API passthrough does not authenticate your callers. If you deploy this repository with `LANGGRAPH_API_URL` and `LANGSMITH_API_KEY` set and no gate of your own, anyone who reaches your deployment URL can read, overwrite, and delete every thread and store item in your LangGraph deployment, and start runs billed to your LangSmith account.
+> The API passthrough does not authenticate its callers. If you expose it with a LangSmith key and no gate of your own, anyone who reaches the URL can read, modify, and delete threads and store items, and start runs billed to your account. Add authentication before deploying, or remove the proxy route and use LangGraph custom authentication.
 
-Before you deploy, set up [custom authentication](#advanced-setup---custom-authentication) on your LangGraph deployment and delete `src/app/api/[..._path]/route.ts`, so your LangSmith key never sits behind a public route.
+### Custom authentication
 
-### Advanced Setup - Custom Authentication
+For stronger control, configure custom authentication on the LangGraph deployment, set `NEXT_PUBLIC_API_URL` to the deployment URL, and pass the user's token through the stream client's `defaultHeaders` in `src/providers/Stream.tsx`.
 
-Custom authentication in your LangGraph deployment is an advanced, and more robust way of authenticating requests to your LangGraph server. Using custom authentication, you can allow requests to be made from the client, without the need for a LangSmith API key. Additionally, you can specify custom access controls on requests.
+## Message rendering
 
-To set this up in your LangGraph deployment, please read the LangGraph custom authentication docs for [Python](https://langchain-ai.github.io/langgraph/tutorials/auth/getting_started/), and [TypeScript here](https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/).
+To prevent live streaming for a model, add the `langsmith:nostream` tag to its config. To hide a message permanently, prefix its ID with `do-not-render-` before saving it to graph state. The UI filters IDs with this prefix.
 
-Once you've set it up on your deployment, you should make the following changes to the Agent Chat UI:
+## Artifacts
 
-1. Configure any additional API requests to fetch the authentication token from your LangGraph deployment which will be used to authenticate requests from the client.
-2. Set the `NEXT_PUBLIC_API_URL` environment variable to your production LangGraph deployment URL.
-3. Set the `NEXT_PUBLIC_ASSISTANT_ID` environment variable to the ID of the assistant you want to use when fetching, and submitting runs via the chat interface.
-4. Modify the [`useTypedStream`](src/providers/Stream.tsx) (extension of `useStream`) hook to pass your authentication token through headers to the LangGraph server:
+Artifacts render in the side panel. Graph code can attach an artifact component and open state through the thread metadata `artifact` field; the UI exposes it through the artifact context in `src/components/thread/artifact.tsx`.
 
-```tsx
-const streamValue = useTypedStream({
-  apiUrl: process.env.NEXT_PUBLIC_API_URL,
-  assistantId: process.env.NEXT_PUBLIC_ASSISTANT_ID,
-  // ... other fields
-  defaultHeaders: {
-    Authentication: `Bearer ${addYourTokenHere}`, // this is where you would pass your authentication token
-  },
-});
-```
+## Known limitations
+
+- The runs dashboard is capped at twelve threads and five runs per thread; pagination is a follow-up.
+- The review queue is limited to fifty interrupted threads.
+- Cron editing is not supported; create, pause, enable, and delete are.
+- Committed browser regression tests are not present yet.
+- The browser tab icon was intentionally removed.
+
+## Troubleshooting
+
+| Symptom                                 | Checks                                                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Agent list is empty                     | Confirm `NEXT_PUBLIC_API_URL` and that `GET /info` responds. Check credentials or `NEXT_PUBLIC_AUTH_SCHEME` for Agent Builder deployments. |
+| Thread history is empty                 | Confirm the selected assistant or graph is the one that owns the threads. Switching agents scopes the list.                                |
+| A cron is missing                       | Confirm the correct agent is selected, the task is enabled, and the schedule is a valid five-field expression.                             |
+| A cron did not run                      | Check the Runs tab and the deployment logs. Verify the timezone and the optional end time.                                                 |
+| A review is missing                     | Only threads with `status: "interrupted"` appear. The queue shows up to fifty threads.                                                     |
+| Runs look incomplete                    | The dashboard loads the twelve most recently updated threads and five runs per thread. Open a thread for its full run history.             |
+| Theme is wrong on first paint           | The default is the system theme. Toggle once to persist an explicit preference.                                                            |
+| API requests return 401/403             | Check the LangSmith key, auth scheme, or custom authentication headers in `src/providers/Stream.tsx`.                                      |
+| Build reports a Tailwind config warning | This is a pre-existing ESM/CommonJS warning from `tailwind.config.js`; it does not fail the build.                                         |
+
+## Contributing
+
+1. Read [docs/intent.md](./docs/intent.md), [docs/design.md](./docs/design.md), and [docs/plan.md](./docs/plan.md).
+2. Keep changes within the current artifact's scope, or update the design in the same PR.
+3. Run `pnpm exec tsc --noEmit`, `pnpm run lint`, and `pnpm run build`.
+4. For UI changes, include light and dark screenshots and the API endpoints exercised.
+5. Follow [docs/review.md](./docs/review.md). Do not commit `.env` files, API keys, or generated build output.
+
+## License
+
+MIT. The original copyright notice is preserved in [LICENSE](./LICENSE). This project is based on [langchain-ai/agent-chat-ui](https://github.com/langchain-ai/agent-chat-ui) and has been modified into Agent Workspace.
