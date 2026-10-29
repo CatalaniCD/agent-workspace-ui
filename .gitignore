@@ -29,3 +29,6 @@ dist-ssr
 .env
 .next/
 next-env.d.ts
+
+# TypeScript build info
+*.tsbuildinfo

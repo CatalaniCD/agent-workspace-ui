@@ -80,7 +80,6 @@ Lagging indicators:
 
 ## Open questions
 
-- Should crons support editing an existing schedule, or only create, pause, and delete?
 - Should the runs tab paginate beyond the twelve most recently updated threads?
 - Should reviewers be able to claim or assign a paused thread?
 - Do regulated deployments require role-based visibility for the operations sheet?

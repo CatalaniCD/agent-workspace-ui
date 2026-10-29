@@ -3,6 +3,7 @@ import { Cron } from "@langchain/langgraph-sdk";
 import {
   CalendarClock,
   LoaderCircle,
+  Pencil,
   Plus,
   RefreshCw,
   Trash2,
@@ -13,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAgents } from "@/providers/Agents";
 import { useThreads } from "@/providers/Thread";
 import { toast } from "sonner";
-import { CreateCronDialog, CronCreateInput } from "./create-cron-dialog";
+import { CronDialog, CronCreateInput, CronUpdateInput } from "./cron-dialog";
 import { formatRelative, getCronPrompt, getCronTitle } from "./utils";
 
 export function CronsTab() {
@@ -23,6 +24,7 @@ export function CronsTab() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingCron, setEditingCron] = useState<Cron | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -82,6 +84,17 @@ export function CronsTab() {
       throw new Error("Select an agent before creating a scheduled task.");
     }
     await client.crons.create(assistantId, payload);
+    await loadCrons();
+  };
+
+  const handleUpdate = async (
+    cronId: string,
+    payload: CronUpdateInput,
+  ): Promise<void> => {
+    if (!client) {
+      throw new Error("Connect to a deployment before editing a task.");
+    }
+    await client.crons.update(cronId, payload);
     await loadCrons();
   };
 
@@ -262,6 +275,16 @@ export function CronsTab() {
                       type="button"
                       variant="ghost"
                       size="icon"
+                      aria-label={`Edit ${getCronTitle(cron)}`}
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => setEditingCron(cron)}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
                       aria-label={`Delete ${getCronTitle(cron)}`}
                       className="text-muted-foreground hover:text-destructive"
                       onClick={() =>
@@ -309,11 +332,18 @@ export function CronsTab() {
         </div>
       )}
 
-      <CreateCronDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
+      <CronDialog
+        open={createOpen || editingCron !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateOpen(false);
+            setEditingCron(null);
+          }
+        }}
         assistantLabel={assistantLabel}
+        cron={editingCron}
         onCreate={handleCreate}
+        onUpdate={handleUpdate}
       />
     </div>
   );

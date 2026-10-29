@@ -218,6 +218,5 @@ Track these with the workspace in production:
 ## 12. Open follow-ups
 
 - Add pagination or server-side run filtering for large workspaces.
-- Add cron editing if operations teams need it.
 - Add agent-scoped permissions before exposing operations to broader audiences.
 - Add committed Playwright coverage for the flows in [testing.md](./testing.md).

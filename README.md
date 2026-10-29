@@ -116,6 +116,8 @@ Open [http://localhost:3000](http://localhost:3000). If you do not set the envir
 | `NEXT_PUBLIC_AUTH_SCHEME`  | No                     | Set to `langsmith-api-key` only for LangSmith Agent Builder deployments                          |
 | `LANGSMITH_API_KEY`        | Server-side only       | Injected by the API passthrough when required; never prefix with `NEXT_PUBLIC_`                  |
 | `LANGGRAPH_API_URL`        | Production passthrough | The upstream Aegra or LangGraph-compatible URL                                                   |
+| `CF_ACCESS_CLIENT_ID`      | No                     | Cloudflare Access service-token client ID for the upstream API; set with the secret              |
+| `CF_ACCESS_CLIENT_SECRET`  | No                     | Cloudflare Access service-token secret for the upstream API; never prefix with `NEXT_PUBLIC_`    |
 
 The selected agent, active thread, and operations view are stored in the URL. The API key is handled by the existing client credentials helpers and must never be committed.
 
@@ -145,6 +147,8 @@ Open **Operations → Scheduled** and click **New task**.
 6. Optionally set an end time.
 7. Choose whether the thread is kept after the run.
 8. Create the task and confirm it appears with the expected next run.
+
+Use the switch on a task card to pause or enable it, the pencil button to edit it, and the trash button to delete it after confirmation.
 
 Common schedules:
 
@@ -233,11 +237,14 @@ NEXT_PUBLIC_ASSISTANT_ID="agent"
 LANGGRAPH_API_URL="https://your-aegra-server.example.com"
 NEXT_PUBLIC_API_URL="https://my-website.com/api"
 LANGSMITH_API_KEY="lsv2_..." # only if your deployment requires it
+CF_ACCESS_CLIENT_ID="..." # only for Cloudflare Access-protected upstreams
+CF_ACCESS_CLIENT_SECRET="..."
 ```
 
 - `NEXT_PUBLIC_API_URL` points to your site plus `/api`.
 - `LANGGRAPH_API_URL` is the upstream Aegra server.
 - `LANGSMITH_API_KEY` stays server-side and is injected by the proxy when required.
+- `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` add a Cloudflare Access service token to upstream requests. The proxy never forwards client-supplied token headers and fails clearly when Access returns a login redirect.
 
 > [!WARNING]
 > The API passthrough does not authenticate its callers. If you expose it with a LangSmith key and no gate of your own, anyone who reaches the URL can read, modify, and delete threads and store items, and start runs billed to your account. Add authentication before deploying, or remove the proxy route and use LangGraph custom authentication.
@@ -258,7 +265,6 @@ Artifacts render in the side panel. Graph code can attach an artifact component 
 
 - The runs dashboard is capped at twelve threads and five runs per thread; pagination is a follow-up.
 - The review queue is limited to fifty interrupted threads.
-- Cron editing is not supported; create, pause, enable, and delete are.
 - Committed browser regression tests are not present yet.
 - The browser tab icon was intentionally removed.
 

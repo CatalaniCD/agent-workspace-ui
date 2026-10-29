@@ -158,7 +158,6 @@ Every production incident in these flows becomes a permanent eval.
 
 - No committed Playwright tests yet.
 - Runs dashboard is capped and not paginated.
-- Cron editing is not supported.
 - Review queue is limited to 50 interrupted threads.
 - Theme contrast has been checked visually, not with an automated axe or Lighthouse gate.
 - The mock server used for smoke testing is not part of the repository.

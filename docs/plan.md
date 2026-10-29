@@ -25,7 +25,6 @@ Out of scope:
 
 - server or SDK changes;
 - role-based access control and multi-tenancy;
-- cron editing;
 - pagination beyond the bounded first page;
 - committed browser automation (defined as a follow-up in [testing.md](./testing.md)).
 
@@ -166,6 +165,5 @@ Lagging:
 1. Add Playwright coverage for the ten smoke scenarios.
 2. Add a 20–50 task non-interactive eval suite and gate config changes on pass rate.
 3. Add run pagination and server-side filtering.
-4. Add cron editing if requested.
-5. Add permissions before broadening operations access.
-6. Replace the removed favicon with an intentional Agent Workspace icon if branding requires one.
+4. Add permissions before broadening operations access.
+5. Replace the removed favicon with an intentional Agent Workspace icon if branding requires one.

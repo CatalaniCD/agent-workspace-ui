@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Cron } from "@langchain/langgraph-sdk";
 import { CalendarClock, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { getCronPrompt } from "./utils";
 
 export interface CronCreateInput {
   schedule: string;
@@ -27,11 +29,17 @@ export interface CronCreateInput {
   };
 }
 
-interface CreateCronDialogProps {
+export interface CronUpdateInput extends Omit<CronCreateInput, "endTime"> {
+  endTime?: string | null;
+}
+
+interface CronDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   assistantLabel: string;
+  cron?: Cron | null;
   onCreate: (payload: CronCreateInput) => Promise<void>;
+  onUpdate?: (cronId: string, payload: CronUpdateInput) => Promise<void>;
 }
 
 const SCHEDULE_PRESETS = [
@@ -48,12 +56,39 @@ function getDefaultTimezone(): string {
   }
 }
 
-export function CreateCronDialog({
+function toLocalDateTimeValue(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function buildMetadata(
+  cron: Cron | null | undefined,
+  title: string,
+): Record<string, unknown> | undefined {
+  const metadata = { ...(cron?.metadata ?? {}) };
+  const trimmed = title.trim();
+  if (trimmed) {
+    metadata.title = trimmed;
+  } else {
+    delete metadata.title;
+  }
+  return Object.keys(metadata).length > 0 ? metadata : undefined;
+}
+
+export function CronDialog({
   open,
   onOpenChange,
   assistantLabel,
+  cron,
   onCreate,
-}: CreateCronDialogProps) {
+  onUpdate,
+}: CronDialogProps) {
+  const isEditing = Boolean(cron);
   const [title, setTitle] = useState("");
   const [schedule, setSchedule] = useState("0 9 * * *");
   const [timezone, setTimezone] = useState(getDefaultTimezone);
@@ -65,14 +100,16 @@ export function CreateCronDialog({
 
   useEffect(() => {
     if (!open) return;
-    setTitle("");
-    setSchedule("0 9 * * *");
-    setTimezone(getDefaultTimezone());
-    setPrompt("");
-    setEndTime("");
-    setKeepThread(true);
-    setEnabled(true);
-  }, [open]);
+    setTitle(
+      typeof cron?.metadata?.title === "string" ? cron.metadata.title : "",
+    );
+    setSchedule(cron?.schedule ?? "0 9 * * *");
+    setTimezone(cron?.timezone ?? getDefaultTimezone());
+    setPrompt(cron ? getCronPrompt(cron) : "");
+    setEndTime(toLocalDateTimeValue(cron?.end_time));
+    setKeepThread(cron ? cron.on_run_completed !== "delete" : true);
+    setEnabled(cron ? cron.enabled : true);
+  }, [open, cron]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -87,22 +124,41 @@ export function CreateCronDialog({
 
     setSubmitting(true);
     try {
-      await onCreate({
+      const payload: CronCreateInput = {
         schedule: schedule.trim(),
         timezone: timezone.trim() || undefined,
         endTime: endTime ? new Date(endTime).toISOString() : undefined,
         enabled,
         onRunCompleted: keepThread ? "keep" : "delete",
-        metadata: title.trim() ? { title: title.trim() } : undefined,
+        metadata: buildMetadata(cron, title),
         input: {
           messages: [{ type: "human", content: prompt.trim() }],
         },
-      });
-      toast.success("Scheduled task created.");
+      };
+
+      if (cron && onUpdate) {
+        await onUpdate(cron.cron_id, {
+          ...payload,
+          endTime: endTime ? new Date(endTime).toISOString() : null,
+        });
+        toast.success("Scheduled task updated.");
+      } else {
+        await onCreate(payload);
+        toast.success("Scheduled task created.");
+      }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to create scheduled task", error);
-      toast.error("Failed to create scheduled task. Please try again.");
+      console.error(
+        isEditing
+          ? "Failed to update scheduled task"
+          : "Failed to create scheduled task",
+        error,
+      );
+      toast.error(
+        isEditing
+          ? "Failed to update scheduled task. Please try again."
+          : "Failed to create scheduled task. Please try again.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -117,11 +173,14 @@ export function CreateCronDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarClock className="size-5" />
-            New scheduled task
+            {isEditing ? "Edit scheduled task" : "New scheduled task"}
           </DialogTitle>
           <DialogDescription>
-            Run <span className="font-medium">{assistantLabel}</span> on a cron
-            schedule. The prompt is sent as the first human message of each run.
+            {isEditing ? "Update the schedule for " : "Run "}
+            <span className="font-medium">{assistantLabel}</span>
+            {isEditing
+              ? ". The prompt is sent as the first human message of each run."
+              : " on a cron schedule. The prompt is sent as the first human message of each run."}
           </DialogDescription>
         </DialogHeader>
 
@@ -242,7 +301,7 @@ export function CreateCronDialog({
               disabled={submitting}
             >
               {submitting && <LoaderCircle className="size-4 animate-spin" />}
-              Create task
+              {isEditing ? "Save changes" : "Create task"}
             </Button>
           </DialogFooter>
         </form>

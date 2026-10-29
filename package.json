@@ -16,7 +16,9 @@
     "lint": "NODE_OPTIONS='--require ./scripts/use-typescript6.cjs' eslint .",
     "lint:fix": "NODE_OPTIONS='--require ./scripts/use-typescript6.cjs' eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:access": "node scripts/test-access-token.mjs",
+    "test:proxy": "node scripts/test-proxy-route.mjs"
   },
   "dependencies": {
     "@langchain/core": "^1.2.18",
