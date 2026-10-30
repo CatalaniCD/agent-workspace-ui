@@ -1,5 +1,10 @@
 import { parseAsBoolean, parseAsString, useQueryState } from "nuqs";
-import { Activity, CalendarClock, ClipboardCheck } from "lucide-react";
+import {
+  Activity,
+  CalendarClock,
+  ClipboardCheck,
+  FileText,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,14 +17,16 @@ import { CronsTab } from "./crons-tab";
 import { ReviewsTab } from "./reviews-tab";
 import { RunsTab } from "./runs-tab";
 import { SchedulingGuide } from "./scheduling-guide";
+import { ScratchpadTab } from "./scratchpad-tab";
 
-type OperationsTab = "scheduled" | "runs" | "reviews";
+type OperationsTab = "scratchpad" | "scheduled" | "runs" | "reviews";
 
 const TABS: Array<{
   value: OperationsTab;
   label: string;
   icon: typeof CalendarClock;
 }> = [
+  { value: "scratchpad", label: "Scratchpad", icon: FileText },
   { value: "scheduled", label: "Scheduled", icon: CalendarClock },
   { value: "runs", label: "Runs", icon: Activity },
   { value: "reviews", label: "Reviews", icon: ClipboardCheck },
@@ -53,8 +60,8 @@ export function OperationsSheet() {
             Operations
           </SheetTitle>
           <SheetDescription>
-            Manage scheduled runs and review workflow activity for the selected
-            agent.
+            Review the shared scratchpad, scheduled runs, and workflow activity
+            for the selected agent.
           </SheetDescription>
         </SheetHeader>
 
@@ -81,6 +88,7 @@ export function OperationsSheet() {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          {tab === "scratchpad" && <ScratchpadTab />}
           {tab === "scheduled" && <CronsTab />}
           {tab === "runs" && <RunsTab />}
           {tab === "reviews" && <ReviewsTab />}
