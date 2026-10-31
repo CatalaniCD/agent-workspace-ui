@@ -29,6 +29,7 @@ import { AgentSelector } from "@/components/agents/agent-selector";
 import { OperationsSheet } from "@/components/operations";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { FontSizeToggle } from "@/components/font-size-toggle";
+import { FullscreenToggle } from "@/components/fullscreen-toggle";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 import ThreadHistory from "./history";
@@ -347,6 +348,7 @@ export function Thread() {
                 </TooltipIconButton>
                 <FontSizeToggle className="size-9 p-1.5 sm:size-8" />
                 <ThemeToggle className="size-9 p-1.5 sm:size-8" />
+                <FullscreenToggle className="size-9 p-1.5 sm:size-8" />
               </div>
             </div>
           )}
@@ -408,6 +410,7 @@ export function Thread() {
                 </TooltipIconButton>
                 <FontSizeToggle className="size-9 p-1.5 sm:size-8" />
                 <ThemeToggle className="size-9 p-1.5 sm:size-8" />
+                <FullscreenToggle className="size-9 p-1.5 sm:size-8" />
               </div>
 
               <div className="from-background to-background/0 absolute inset-x-0 top-full h-5 bg-gradient-to-b" />
